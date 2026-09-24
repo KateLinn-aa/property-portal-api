@@ -1,0 +1,80 @@
+// prisma/schema.prisma
+// NOTE: Prisma 7 no longer reads the datasource `url` from schema.prisma.
+// The connection URL (from DATABASE_URL) is supplied via a driver adapter
+// in prisma.config.ts (for the CLI/migrate) and in src/lib/prisma.ts /
+// prisma/seed.ts (for the runtime PrismaClient).
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ListingType {
+  SALE
+  RENT
+}
+
+enum PropertyType {
+  CONDO
+  APARTMENT
+  HOUSE
+  LAND
+}
+
+enum City {
+  YANGON
+  MANDALAY
+  BAGO
+}
+
+enum ListingStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  phone        String?
+  role         UserRole  @default(USER)
+  createdAt    DateTime  @default(now())
+  listings     Listing[]
+}
+
+model Listing {
+  id           Int            @id @default(autoincrement())
+  userId       Int
+  user         User           @relation(fields: [userId], references: [id])
+  title        String
+  description  String
+  listingType  ListingType
+  propertyType PropertyType
+  city         City
+  township     String?
+  address      String?
+  priceMmk     Int
+  bedrooms     Int?
+  bathrooms    Int?
+  areaSqft     Int?
+  status       ListingStatus  @default(ACTIVE)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  photos       ListingPhoto[]
+}
+
+model ListingPhoto {
+  id        Int      @id @default(autoincrement())
+  listingId Int
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  url       String
+  sortOrder Int      @default(0)
+}
